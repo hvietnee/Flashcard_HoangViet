@@ -1,38 +1,34 @@
 package com.hoangviet.flashcard
 
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.hoangviet.flashcard.databinding.ActivityAddFlashcardBinding
 import kotlinx.coroutines.launch
 
 class AddFlashcardActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityAddFlashcardBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_flashcard)
+        binding = ActivityAddFlashcardBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        val etFront = findViewById<EditText>(R.id.etFront)
-        val etBack = findViewById<EditText>(R.id.etBack)
-        val btnSave = findViewById<Button>(R.id.btnSaveFlashcard)
+        // Lấy ID của bộ thẻ từ màn hình chính gửi sang
+        val deckId = intent.getLongExtra("DECK_ID", -1)
 
-        btnSave.setOnClickListener {
-            val frontText = etFront.text.toString()
-            val backText = etBack.text.toString()
+        binding.btnSave.setOnClickListener {
+            val frontText = binding.edtFront.text.toString()
+            val backText = binding.edtBack.text.toString()
 
             if (frontText.isNotEmpty() && backText.isNotEmpty()) {
-                lifecycleScope.launch {
-                    val newCard = Flashcard(deckId = 1, front = frontText, back = backText)
-                    AppDatabase.getDatabase(this@AddFlashcardActivity).flashcardDao().insert(newCard)
+                val newCard = Flashcard(deckId = deckId, front = frontText, back = backText)
 
-                    runOnUiThread {
-                        Toast.makeText(this@AddFlashcardActivity, "Đã lưu thẻ!", Toast.LENGTH_SHORT).show()
-                        finish()
-                    }
+                lifecycleScope.launch {
+                    val database = AppDatabase.getDatabase(this@AddFlashcardActivity)
+                    database.flashcardDao().insert(newCard)
+                    finish() // Lưu xong đóng màn hình thêm thẻ
                 }
-            } else {
-                Toast.makeText(this, "Nhập đủ thông tin đã ông giáo ơi!", Toast.LENGTH_SHORT).show()
             }
         }
     }

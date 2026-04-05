@@ -2,10 +2,10 @@ package com.hoangviet.flashcard
 
 import androidx.lifecycle.*
 import kotlinx.coroutines.launch
-import androidx.lifecycle.asLiveData
 
 class FlashcardViewModel(private val dao: FlashcardDao) : ViewModel() {
 
+    // Chuyển Flow từ Dao sang LiveData để hiển thị lên màn hình
     val allFlashcards: LiveData<List<Flashcard>> = dao.getAllFlashcards().asLiveData()
 
     fun insert(flashcard: Flashcard) = viewModelScope.launch {
