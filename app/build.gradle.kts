@@ -25,6 +25,12 @@ android {
         }
     }
 
+    // --- HOÀNG VIỆT THÊM ĐOẠN NÀY ĐỂ BẬT VIEWBINDING ---
+    buildFeatures {
+        viewBinding = true
+    }
+    // ------------------------------------------------
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -45,9 +51,16 @@ dependencies {
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    // Thư viện giúp biến dữ liệu Flow thành LiveData để hiển thị lên màn hình
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
     ksp(libs.room.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    // Thư viện hỗ trợ biến Flow thành LiveData cho ViewModel
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+    // Thư viện hỗ trợ viewModelScope để chạy tác vụ ngầm (Coroutine)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+    implementation("androidx.activity:activity-ktx:1.8.0")
 }
