@@ -1,6 +1,7 @@
 package com.hoangviet.flashcard
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.hoangviet.flashcard.databinding.ActivityAddFlashcardBinding
@@ -14,21 +15,20 @@ class AddFlashcardActivity : AppCompatActivity() {
         binding = ActivityAddFlashcardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Lấy ID của bộ thẻ từ màn hình chính gửi sang
-        val deckId = intent.getLongExtra("DECK_ID", -1)
-
         binding.btnSave.setOnClickListener {
-            val frontText = binding.edtFront.text.toString()
-            val backText = binding.edtBack.text.toString()
+            val front = binding.edtFront.text.toString()
+            val back = binding.edtBack.text.toString()
 
-            if (frontText.isNotEmpty() && backText.isNotEmpty()) {
-                val newCard = Flashcard(deckId = deckId, front = frontText, back = backText)
-
+            if (front.isNotEmpty() && back.isNotEmpty()) {
+                val newCard = Flashcard(front = front, back = back)
                 lifecycleScope.launch {
-                    val database = AppDatabase.getDatabase(this@AddFlashcardActivity)
-                    database.flashcardDao().insert(newCard)
-                    finish() // Lưu xong đóng màn hình thêm thẻ
+                    // Lưu vào database thật sự nè
+                    (application as FlashcardApplication).repository.insert(newCard)
+                    Toast.makeText(this@AddFlashcardActivity, "Đã lưu thẻ!", Toast.LENGTH_SHORT).show()
+                    finish() // Quay về màn hình chính
                 }
+            } else {
+                Toast.makeText(this, "Việt ơi nhập đủ 2 mặt đi!", Toast.LENGTH_SHORT).show()
             }
         }
     }

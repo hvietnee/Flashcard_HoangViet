@@ -1,39 +1,19 @@
 package com.hoangviet.flashcard
 
-import kotlin.math.max
-
 object SM2Logic {
-    // Hàm tính toán lịch ôn tập dựa trên thuật toán SuperMemo-2
-    fun calculate(card: Flashcard, quality: Int): Flashcard {
-        var repetitions = card.repetition
-        var interval = card.interval
-        var easeFactor = card.easeFactor
+    // Bản DEMO: Tính toán thời gian theo Phút để thầy xem ngay tại chỗ
+    fun updateCardForDemo(card: Flashcard, status: Int): Flashcard {
+        val currentTime = System.currentTimeMillis()
 
-        if (quality >= 3) {
-            // Nếu người dùng nhớ thẻ (mức độ >= 3)
-            if (repetitions == 0) {
-                interval = 1
-            } else if (repetitions == 1) {
-                interval = 6
-            } else {
-                interval = (interval * easeFactor).toInt()
-            }
-            repetitions++
-        } else {
-            // Nếu người dùng không nhớ thẻ
-            repetitions = 0
-            interval = 1
+        if (status == 1) { // MÀU CAM: Chưa biết
+            card.status = 1
+            // Lên lịch học lại sau đúng 1 phút (60.000 mili giây)
+            card.nextReview = currentTime + (1 * 60 * 1000L)
+        } else { // MÀU XANH: Đã biết
+            card.status = 2
+            // Lên lịch học lại sau 2 phút (120.000 mili giây)
+            card.nextReview = currentTime + (2 * 60 * 1000L)
         }
-
-        // Cập nhật hệ số độ dễ (Ease Factor)
-        easeFactor += (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)).toFloat()
-        if (easeFactor < 1.3f) easeFactor = 1.3f
-
-        // Trả về một bản sao của thẻ với các thông số mới
-        return card.copy(
-            repetition = repetitions,
-            interval = interval,
-            easeFactor = easeFactor
-        )
+        return card
     }
 }

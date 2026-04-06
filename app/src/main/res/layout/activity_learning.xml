@@ -1,50 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:gravity="center">
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/cardContainer"
+        android:id="@+id/cardView"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_marginBottom="32dp">
-
+        android:layout_height="350dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="10dp">
         <TextView
-            android:id="@+id/tvContent"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:textSize="24sp"
-            android:text="Chạm để bắt đầu" />
+            android:id="@+id/tvFront"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="English"
+            android:textSize="30sp"
+            android:textStyle="bold" />
     </androidx.cardview.widget.CardView>
-
-    <TextView
-        android:id="@+id/tvHint"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Chạm để xem đáp án"
-        android:layout_marginBottom="32dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/btnHard"
+            android:id="@+id/btnUnknown"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:layout_weight="1"
-            android:text="Khó (1đ)" />
+            android:layout_marginEnd="10dp"
+            android:backgroundTint="#FF9800"
+            android:text="Chưa biết" />
 
         <Button
-            android:id="@+id/btnEasy"
+            android:id="@+id/btnKnown"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:layout_weight="1"
-            android:text="Dễ (5đ)" />
+            android:backgroundTint="#2196F3"
+            android:text="Đã biết" />
     </LinearLayout>
 </LinearLayout>
