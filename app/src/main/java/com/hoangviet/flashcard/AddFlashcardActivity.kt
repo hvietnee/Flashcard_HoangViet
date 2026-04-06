@@ -22,10 +22,10 @@ class AddFlashcardActivity : AppCompatActivity() {
             if (front.isNotEmpty() && back.isNotEmpty()) {
                 val newCard = Flashcard(front = front, back = back)
                 lifecycleScope.launch {
-                    // Lưu vào database thật sự nè
+
                     (application as FlashcardApplication).repository.insert(newCard)
                     Toast.makeText(this@AddFlashcardActivity, "Đã lưu thẻ!", Toast.LENGTH_SHORT).show()
-                    finish() // Quay về màn hình chính
+                    finish()
                 }
             } else {
                 Toast.makeText(this, "Việt ơi nhập đủ 2 mặt đi!", Toast.LENGTH_SHORT).show()

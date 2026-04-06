@@ -20,7 +20,6 @@ class ReminderWorker(context: Context, params: WorkerParameters) : Worker(contex
             manager.createNotificationChannel(channel)
         }
 
-        // Tạo chìa khóa: Nhấn thông báo là mở ngay MainActivity
         val intent = Intent(applicationContext, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }

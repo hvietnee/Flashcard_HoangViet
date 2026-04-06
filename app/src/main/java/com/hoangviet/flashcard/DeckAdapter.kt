@@ -9,7 +9,6 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 
-// QUAN TRỌNG: Ông phải dán đúng cái ngoặc này thì bên dưới mới hết đỏ
 class DeckAdapter(
     private val onClick: (Flashcard) -> Unit,
     private val onSpeakClick: (String) -> Unit,
@@ -28,14 +27,12 @@ class DeckAdapter(
         val item = list[position]
         holder.tvName.text = item.front
 
-        // TÔ MÀU: Cam (Chưa thuộc), Xanh (Đã thuộc)
         when (item.status) {
             1 -> holder.cardRoot.setCardBackgroundColor(Color.parseColor("#FF9800"))
             2 -> holder.cardRoot.setCardBackgroundColor(Color.parseColor("#2196F3"))
             else -> holder.cardRoot.setCardBackgroundColor(Color.WHITE)
         }
 
-        // HẾT LỖI ĐỎ: Vì đã khai báo ở trên
         holder.btnSpeak.setOnClickListener { onSpeakClick(item.front) }
         holder.itemView.setOnClickListener { onClick(item) }
         holder.itemView.setOnLongClickListener { onLongClick(item, it); true }

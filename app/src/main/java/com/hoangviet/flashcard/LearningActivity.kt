@@ -44,8 +44,8 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
 
-        binding.btnUnknown.setOnClickListener { updateAndNext(1) } // Cam
-        binding.btnKnown.setOnClickListener { updateAndNext(2) }   // Xanh
+        binding.btnUnknown.setOnClickListener { updateAndNext(1) }
+        binding.btnKnown.setOnClickListener { updateAndNext(2) }
     }
 
     private fun showCard() {
@@ -68,14 +68,12 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun updateAndNext(status: Int) {
         val card = flashcardList[currentIndex]
 
-        // 1. Dùng bộ não SM-2 để tính thời gian
         val updatedCard = SM2Logic.updateCardForDemo(card, status)
 
         lifecycleScope.launch {
-            // 2. Lưu vào máy để hiện màu Cam/Xanh ngoài màn hình chính
+
             AppDatabase.getDatabase(this@LearningActivity).flashcardDao().update(updatedCard)
 
-            // 3. Đặt lịch thông báo đúng 1p hoặc 2p sau
             scheduleReminder(updatedCard)
 
             currentIndex++
@@ -90,7 +88,6 @@ class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 .setInitialDelay(delay, TimeUnit.MILLISECONDS)
                 .build()
 
-            // REMIND_${card.id} để mỗi từ có một lịch nhắc riêng, không bị đè nhau
             WorkManager.getInstance(this).enqueueUniqueWork(
                 "REMIND_${card.id}",
                 ExistingWorkPolicy.REPLACE,
