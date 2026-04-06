@@ -1,45 +1,51 @@
 package com.hoangviet.flashcard
 
-import android.content.Intent
+import android.graphics.Color
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
+import android.widget.ImageButton
+import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
-import com.hoangviet.flashcard.databinding.ItemDeckBinding
 
-class DeckAdapter : ListAdapter<Deck, DeckAdapter.DeckViewHolder>(DeckDiffCallback()) {
+// QUAN TRỌNG: Ông phải dán đúng cái ngoặc này thì bên dưới mới hết đỏ
+class DeckAdapter(
+    private val onClick: (Flashcard) -> Unit,
+    private val onSpeakClick: (String) -> Unit,
+    private val onLongClick: (Flashcard, View) -> Unit
+) : RecyclerView.Adapter<DeckAdapter.DeckViewHolder>() {
+
+    private var list = listOf<Flashcard>()
+    fun submitList(newList: List<Flashcard>) { list = newList; notifyDataSetChanged() }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DeckViewHolder {
-        val binding = ItemDeckBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return DeckViewHolder(binding)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_deck, parent, false)
+        return DeckViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: DeckViewHolder, position: Int) {
-        val deck = getItem(position)
-        holder.bind(deck)
+        val item = list[position]
+        holder.tvName.text = item.front
 
-        // KHI NHẤN VÀO THẺ: Dẫn thẳng tới màn hình học tập LearningActivity
-        holder.itemView.setOnClickListener {
-            val context = holder.itemView.context
-            val intent = Intent(context, LearningActivity::class.java)
-
-            // Gửi ID của bộ thẻ đi theo để máy biết cần học bộ nào
-            intent.putExtra("DECK_ID", deck.id)
-
-            context.startActivity(intent)
+        // TÔ MÀU: Cam (Chưa thuộc), Xanh (Đã thuộc)
+        when (item.status) {
+            1 -> holder.cardRoot.setCardBackgroundColor(Color.parseColor("#FF9800"))
+            2 -> holder.cardRoot.setCardBackgroundColor(Color.parseColor("#2196F3"))
+            else -> holder.cardRoot.setCardBackgroundColor(Color.WHITE)
         }
+
+        // HẾT LỖI ĐỎ: Vì đã khai báo ở trên
+        holder.btnSpeak.setOnClickListener { onSpeakClick(item.front) }
+        holder.itemView.setOnClickListener { onClick(item) }
+        holder.itemView.setOnLongClickListener { onLongClick(item, it); true }
     }
 
-    class DeckViewHolder(private val binding: ItemDeckBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(deck: Deck) {
-            binding.tvDeckName.text = deck.name
-            binding.tvDeckDescription.text = deck.description
-        }
-    }
+    override fun getItemCount() = list.size
 
-    class DeckDiffCallback : DiffUtil.ItemCallback<Deck>() {
-        override fun areItemsTheSame(oldItem: Deck, newItem: Deck) = oldItem.id == newItem.id
-        override fun areContentsTheSame(oldItem: Deck, newItem: Deck) = oldItem == newItem
+    class DeckViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val tvName: TextView = view.findViewById(R.id.tvDeckName)
+        val btnSpeak: ImageButton = view.findViewById(R.id.btnSpeak)
+        val cardRoot: CardView = view.findViewById(R.id.cardItemRoot)
     }
 }

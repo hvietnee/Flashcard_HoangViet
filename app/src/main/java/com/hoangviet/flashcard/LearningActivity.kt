@@ -1,66 +1,104 @@
 package com.hoangviet.flashcard
 
+import android.graphics.Color
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.work.*
 import com.hoangviet.flashcard.databinding.ActivityLearningBinding
 import kotlinx.coroutines.launch
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
-class LearningActivity : AppCompatActivity() {
+class LearningActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var binding: ActivityLearningBinding
-    private var flashcards: List<Flashcard> = listOf()
+    private lateinit var tts: TextToSpeech
+    private var flashcardList: List<Flashcard> = listOf()
     private var currentIndex = 0
-    private var isFront = true
+    private var isShowingFront = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLearningBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val deckId = intent.getLongExtra("DECK_ID", -1)
+        tts = TextToSpeech(this, this)
+        val startId = intent.getIntExtra("START_CARD_ID", -1)
 
-        val database = AppDatabase.getDatabase(this)
         lifecycleScope.launch {
-            // Lấy danh sách thẻ từ Dao
-            flashcards = database.flashcardDao().getFlashcardsForDeck(deckId)
-            if (flashcards.isNotEmpty()) {
-                showCard()
-            }
-        }
-
-        // Nhấn vào thẻ để lật
-        binding.cardContainer.setOnClickListener {
-            isFront = !isFront
+            flashcardList = AppDatabase.getDatabase(this@LearningActivity).flashcardDao().getAllFlashcardsOnce()
+            currentIndex = flashcardList.indexOfFirst { it.id == startId }.takeIf { it != -1 } ?: 0
             showCard()
         }
 
-        // Nút chọn mức độ
-        binding.btnEasy.setOnClickListener { handleAnswer(5) }
-        binding.btnHard.setOnClickListener { handleAnswer(1) }
+        binding.cardView.setOnClickListener {
+            if (isShowingFront) {
+                binding.tvFront.text = flashcardList[currentIndex].back
+                isShowingFront = false
+            } else {
+                binding.tvFront.text = flashcardList[currentIndex].front
+                isShowingFront = true
+                tts.speak(flashcardList[currentIndex].front, TextToSpeech.QUEUE_FLUSH, null, null)
+            }
+        }
+
+        binding.btnUnknown.setOnClickListener { updateAndNext(1) } // Cam
+        binding.btnKnown.setOnClickListener { updateAndNext(2) }   // Xanh
     }
 
     private fun showCard() {
-        if (flashcards.isEmpty()) return
-        val currentCard = flashcards[currentIndex]
-        // Sửa lỗi front/back ở đây cho Việt
-        binding.tvContent.text = if (isFront) currentCard.front else currentCard.back
-        binding.tvHint.text = if (isFront) "Chạm để xem đáp án" else "Bạn thấy từ này thế nào?"
-    }
-
-    private fun handleAnswer(quality: Int) {
-        val currentCard = flashcards[currentIndex]
-        val updatedCard = SM2Logic.calculate(currentCard, quality)
-
-        lifecycleScope.launch {
-            AppDatabase.getDatabase(this@LearningActivity).flashcardDao().updateFlashcard(updatedCard)
-
-            if (currentIndex < flashcards.size - 1) {
-                currentIndex++
-                isFront = true
-                showCard()
-            } else {
-                finish()
+        if (currentIndex < flashcardList.size) {
+            val card = flashcardList[currentIndex]
+            binding.tvFront.text = card.front
+            isShowingFront = true
+            val color = when(card.status) {
+                1 -> "#FF9800" // Cam
+                2 -> "#2196F3" // Xanh
+                else -> "#FFFFFF"
             }
+            binding.cardView.setCardBackgroundColor(Color.parseColor(color))
+        } else {
+            Toast.makeText(this, "Học xong rồi Việt ơi!", Toast.LENGTH_SHORT).show()
+            finish()
         }
     }
+
+    private fun updateAndNext(status: Int) {
+        val card = flashcardList[currentIndex]
+
+        // 1. Dùng bộ não SM-2 để tính thời gian
+        val updatedCard = SM2Logic.updateCardForDemo(card, status)
+
+        lifecycleScope.launch {
+            // 2. Lưu vào máy để hiện màu Cam/Xanh ngoài màn hình chính
+            AppDatabase.getDatabase(this@LearningActivity).flashcardDao().update(updatedCard)
+
+            // 3. Đặt lịch thông báo đúng 1p hoặc 2p sau
+            scheduleReminder(updatedCard)
+
+            currentIndex++
+            showCard()
+        }
+    }
+
+    private fun scheduleReminder(card: Flashcard) {
+        val delay = card.nextReview - System.currentTimeMillis()
+        if (delay > 0) {
+            val workRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
+                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                .build()
+
+            // REMIND_${card.id} để mỗi từ có một lịch nhắc riêng, không bị đè nhau
+            WorkManager.getInstance(this).enqueueUniqueWork(
+                "REMIND_${card.id}",
+                ExistingWorkPolicy.REPLACE,
+                workRequest
+            )
+        }
+    }
+
+    override fun onInit(status: Int) { if (status == TextToSpeech.SUCCESS) tts.language = Locale.US }
+    override fun onDestroy() { tts.shutdown(); super.onDestroy() }
 }

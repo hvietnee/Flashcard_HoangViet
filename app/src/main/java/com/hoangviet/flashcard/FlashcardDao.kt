@@ -5,21 +5,21 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FlashcardDao {
-    // Lệnh lấy toàn bộ thẻ (để hết đỏ getAllFlashcards)
     @Query("SELECT * FROM flashcards")
     fun getAllFlashcards(): Flow<List<Flashcard>>
 
-    // Lệnh lấy thẻ theo bộ (để học tập)
-    @Query("SELECT * FROM flashcards WHERE deckId = :deckId")
-    suspend fun getFlashcardsForDeck(deckId: Long): List<Flashcard>
+    @Query("SELECT * FROM flashcards")
+    suspend fun getAllFlashcardsOnce(): List<Flashcard>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(flashcard: Flashcard)
 
     @Update
-    suspend fun updateFlashcard(flashcard: Flashcard)
+    suspend fun update(flashcard: Flashcard)
 
-    // Lệnh xóa (để hết đỏ delete)
     @Delete
     suspend fun delete(flashcard: Flashcard)
+
+    @Query("SELECT COUNT(*) FROM flashcards WHERE nextReview <= :currentTime")
+    suspend fun getDueCount(currentTime: Long): Int
 }
